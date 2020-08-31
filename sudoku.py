@@ -1,4 +1,6 @@
-import sys
+
+
+
 rows=[[0,1,2,3,4,5,6,7,8],
 [9,10,11,12,13,14,15,16,17],
 [18,19,20,21,22,23,24,25,26],
@@ -30,69 +32,71 @@ boxes = [[0,1,2,9,10,11,18,19,20],
 [57,58,59,66,67,68,75,76,77],
 [60,61,62,69,70,71,78,79,80]]
 
-board = [1, 2, 3, 4, 5, 6, 7, 8, 9,
-         'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b',
-         'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b',
-         'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b',
-         'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b',
-         'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b',
-         'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b',
-         'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b',
-         'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b']
+# UPDATE BOARD ACCORDING TO YOUR SUDOKU PUZZLE. FOR BLACK SQUARES USE 'b'
+board = [8, 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b',
+         'b', 'b', 3, 6, 'b', 'b', 'b', 'b', 'b',
+         'b', 7, 'b', 'b', 9, 'b', 2, 'b', 'b',
+         'b', 2, 'b', 'b', 'b', 7, 'b', 'b', 'b',
+         'b', 'b', 'b', 'b', 4, 5, 7, 'b', 'b',
+         'b', 'b', 'b', 1, 'b', 'b', 'b', 3, 'b',
+         'b', 'b', 1, 'b', 'b', 'b', 'b', 6, 8,
+         'b', 'b', 8, 5, 'b', 'b', 'b', 1, 'b',
+         'b', 9, 'b', 'b', 'b', 'b', 4, 'b', 'b']
 
-i = 0
+boardlen = 81
+allconfs = {}
 
-
-def solved():
-    if "b" not in board:
+def solved(board):
+    i = findmissing(board)
+    if i is None:
         return True
-    else:
-        return False
 
-
-def nextboard(board, i):
-    boardlen = len(board)
-    while 0 <= i < boardlen:
-        if board[i] == "b":
-            tofindrow = ([pos for row in rows if i in row for pos in row])
-            rownum = rows.index(tofindrow)
-
-            tofindcol = ([pos for col in cols if i in col for pos in col])
-            colnum = cols.index(tofindcol)
-
-            tofindbox = ([pos for box in boxes if i in box for pos in box])
-            boxnum = boxes.index(tofindbox)
-
-            childboard(board, rownum, colnum, boxnum, i)
-        else:
-            i = i + 1
-
-
-
-
-def childboard(board, rownum, colnum, boxnum, i):
-    indexes = (rows[rownum]) + (cols[colnum]) + (boxes[boxnum])
-    nodups = list(set(indexes))
-    nodups.remove(i)
     for num in range(1, 10):
-        board[i] = num
-        if validboard(board, nodups, num) is True:
-            i = i + 1
-            nextboard(board, i)
-        elif num == 9:
-            board[i] = "b"
-            i = i - 1
-            nextboard(board,i)
-        else:
-            continue
+        if validboard(board, i, num) is True:
+            board[i] = num
+
+            if solved(board):
+                return True
+
+            else:
+                board[i] = "b"
+
+    return False
 
 
-def validboard(board, nodups, num):
-    for pos in nodups:
+def findmissing(board):
+
+    for i in range(boardlen):
+        if board[i] == "b":
+            return i
+
+    return None
+
+
+def validboard(board, i, num):
+    if i not in allconfs:
+        tofindrow = ([pos for row in rows if i in row for pos in row])
+        rownum = rows.index(tofindrow)
+
+        tofindcol = ([pos for col in cols if i in col for pos in col])
+        colnum = cols.index(tofindcol)
+
+        tofindbox = ([pos for box in boxes if i in box for pos in box])
+        boxnum = boxes.index(tofindbox)
+
+        indexes = (rows[rownum]) + (cols[colnum]) + (boxes[boxnum])
+        conflicts = list(set(indexes))
+        conflicts.remove(i)
+        allconfs[i] = conflicts
+    else:
+        conflicts = allconfs[i]
+
+    for pos in conflicts:
         if board[pos] == num:
             return False
         else:
             continue
+
     return True
 
 
@@ -100,12 +104,11 @@ def validboard(board, nodups, num):
 
 
 
-def alltogethernow():
-    if solved() is True:
-        print("Solved")
-        print(board)
-    else:
-        nextboard(board, i)
 
+solved(board)
+print("\n\n Your completed sudoku board: \n")
+n=9
+final = [board[i * n:(i + 1) * n] for i in range((len(board) + n - 1) // n)]
+for item in final:
+    print(item)
 
-alltogethernow()
